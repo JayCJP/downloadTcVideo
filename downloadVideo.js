@@ -1,38 +1,34 @@
 const fs = require('fs');
 const path = require('path');
-const axios = require('axios');
-const { chalkLog, printProgress } = require('./ulit')
+const { chalkLog, get, printProgress, userAgent, formatTimeless } = require('./ulit')
 
-// 等待写入流
-const awaitWS = ws =>
-  new Promise((resolve, reject) => {
-    ws.on('finish', () => {
-      ws.close();
-      resolve();
-    });
-    ws.on('error', () => {
-      reject();
-    });
+// 等待完成写入文件
+const awaitWS = ws => new Promise((resolve, reject) => {
+  ws.on('finish', () => {
+    ws.close();
+    resolve();
   });
-// 下载高清视频
+  ws.on('error', () => {
+    reject();
+  });
+});
+// 获取高清视频下载信息
 const load480P = async (vid, fmt, vt, vURL) => {
   // 请求高清视频
   const vurl480p = `http://vv.video.qq.com/getkey`;
   // console.log(vurl480p)
   // 获取高清视频key
-  const vjson480p = await axios.get(vurl480p, {
-    params: {
-      format: fmt,
-      otype: 'json',
-      ran: Math.random(),
-      filename: `${vid}.mp4`,
-      platform: '101001',
-      charge: 0,
-      vt,
-      vid
-    }
+  const vjson480p = await get(vurl480p, {
+    format: fmt,
+    otype: 'json',
+    ran: Math.random(),
+    filename: `${vid}.mp4`,
+    platform: '101001',
+    charge: 0,
+    vt,
+    vid
   });
-  const jsonString480p = vjson480p.data.replace(/QZOutputJson=|;/g, '');
+  const jsonString480p = vjson480p.replace(/QZOutputJson=|;/g, '');
   // console.log(jsonString480p)
   const vinfo480p = JSON.parse(jsonString480p);
   // console.log(vinfo480p)
@@ -45,27 +41,26 @@ const load480P = async (vid, fmt, vt, vURL) => {
   };
   return { URL480p, params };
 };
-// 获取视频信息并下载
+// 获取视频信息
 const loadVideo = async id => {
-  chalkLog('grey','','获取视频信息');
+  chalkLog('grey','获取视频信息');
   const vid = id;
   let vjson = '';
+  // 获取视频信息
   try {
-    vjson = await axios.get(`http://vv.video.qq.com/getinfo`, {
-      params: {
-        vids: vid,
-        platform: '101001',
-        charge: 0,
-        otype: 'json', // XML
-        defn: 'shd'
-      }
+    vjson = await get(`http://vv.video.qq.com/getinfo`, {
+      vids: vid,
+      platform: '101001',
+      charge: 0,
+      otype: 'json', // XML
+      defn: 'shd'
     });
   } catch (error) {
     chalkLog('white','bgRed','获取视频信息失败！');
     return { error: 1 };
   }
   // QZOutputJson= {} ;
-  const jsonString = vjson.data.replace(/QZOutputJson=|;/g, '');
+  const jsonString = vjson.replace(/QZOutputJson=|;/g, '');
   // console.log(jsonString)
   const vinfo = JSON.parse(jsonString);
   // console.log(vinfo)
@@ -88,59 +83,87 @@ const loadVideo = async id => {
     chalkLog('white','bgRed','视频信息不存在！');
     return { error: 1 };
   }
+  //  标清视频 URL
   let urlNormal = '';
-  let getVideoUrl = '';
-  let getVideoParams = '';
+  // 高清视频
+  let videoUrl = '';
+  let videoParams = '';
+  // 区分高清、标清视频下载
   if (!has480p) {
-    //  标清视频 URL
     urlNormal = `${vinfo['vl']['vi'][0]['ul']['ui'][0]['url']}${vinfo['vl']['vi'][0]['fn']}`;
     const vkeyNormal = { vkey: `${vinfo['vl']['vi'][0]['fvkey']}` };
-    getVideoUrl = urlNormal;
-    getVideoParams = vkeyNormal;
-    chalkLog('grey','','当前为标清视频！');
+    videoUrl = urlNormal;
+    videoParams = vkeyNormal;
+    chalkLog('grey','当前为标清视频！');
   } else {
     // 视频基础链接
     const vURL = vinfo.vl.vi[0].ul.ui[0].url;
     // console.log(`vURL: ${vURL};fmt:${fmt};vt:${vt}`)
     const info480P = await load480P(vid, fmt, vt, vURL);
-    getVideoUrl = info480P.URL480p;
-    getVideoParams = info480P.params;
-    console.log(getVideoUrl, getVideoParams)
-    return
-    chalkLog('grey','','当前为高清视频！');
+    videoUrl = info480P.URL480p;
+    videoParams = info480P.params;
+    chalkLog('grey','当前为高清视频！');
   }
-  // 下载视频
+  // 下载视频 以 title 作为文件名
   const videoFilePath = path.resolve(__dirname, `./videos/${ti}.MP4`);
-  chalkLog('grey','','开始下载视频！');
+  chalkLog('grey','开始下载视频！');
+  const { error } = await download(videoUrl, videoParams, videoFilePath);
+  if (!error) {
+    return {
+      error: 0,
+      ti,
+      videoFilePath
+    }
+  }
+};
+// 下载视频
+const download = async (videoUrl, videoParams, videoFilePath) => {
   try {
-    let resvideo = await axios({
-      method: 'get',
-      url: getVideoUrl,
-      params: getVideoParams,
-      responseType: 'stream',
-      headers: {
-        origin: 'https://v.qq.com',
-        referer: `https://v.qq.com`,
-        'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/68.0.3440.106 Safari/537.36'
-      },
-      transformResponse (data) {
-        let size = data.headers[ 'content-length' ];
-        size = (size / (1024 * 1024)).toFixed(2);
-        chalkLog('green','', `视频大小：${size}M!`);
-        return data;
-      }
-      // onDownloadProgress 仅支持在浏览器环境
-    });
-    const rs = resvideo.data;
+    let fileInfo = {
+      size: 0, // 0.00M
+      totalSize: 0, // 总大小
+      downloaded: 0, // 已下载,
+      percent: '0%', // 0.00%
+    }
+    const st = Date.now()
     const ws = fs.createWriteStream(videoFilePath);
-    rs.pipe(ws);
+    const dlV = get(videoUrl, videoParams, {
+      origin: 'https://v.qq.com',
+      referer: `https://v.qq.com`,
+      'user-agent': userAgent
+    })
+    dlV.pipe(ws)
+    // 获取文件大小
+    dlV.on('response', res => {
+      const contentLength = res.headers['content-length']
+      fileInfo.size = `${(contentLength / (1024*1024)).toFixed(2)}M`;
+      fileInfo.totalSize = contentLength
+      chalkLog('green',`视频大小：${fileInfo.size}`);
+    })
+    // 监听进度
+    dlV.on('data', data => {
+      fileInfo.downloaded += data.length;
+      fileInfo.percent = Number(fileInfo.downloaded / fileInfo.totalSize * 100).toFixed(0);
+      // 打印进度
+      printProgress(fileInfo.percent)
+    })
+    // 监听下载完成
+    dlV.on('end', () => {
+      const et = Date.now();
+      const t = formatTimeless(et - st);
+      chalkLog('green',`下载完成，用时：${t}`);
+      chalkLog('green',`正在将视频写入文件……`);
+    })
+    // 等待写入文件
     await awaitWS(ws);
-    return { error: 0, vid, ti, videoFilePath };
+    return { error: 0 };
   } catch (error) {
+    console.log(error)
     chalkLog('white','bgRed','视频下载失败,无权限访问!');
     return { error: 1 };
   }
-};
+}
+
 // 下载
 const downLoadVideo = async (data) => {
   // 下载结果
