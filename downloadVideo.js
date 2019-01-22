@@ -43,7 +43,7 @@ const load480P = async (vid, fmt, vt, vURL) => {
 };
 // 获取视频信息
 const loadVideo = async id => {
-  chalkLog('grey','获取视频信息');
+  chalkLog('grey', '获取视频信息');
   const vid = id;
   let vjson = '';
   // 获取视频信息
@@ -56,7 +56,7 @@ const loadVideo = async id => {
       defn: 'shd'
     });
   } catch (error) {
-    chalkLog('white','bgRed','获取视频信息失败！');
+    chalkLog('white', 'bgRed', '获取视频信息失败！');
     return { error: 1 };
   }
   // QZOutputJson= {} ;
@@ -65,7 +65,7 @@ const loadVideo = async id => {
   const vinfo = JSON.parse(jsonString);
   // console.log(vinfo)
   if (!vinfo.fl) {
-    chalkLog('white','bgRed',`下载失败！错误信息：${vinfo.msg}`);
+    chalkLog('white', 'bgRed', `下载失败！错误信息：${vinfo.msg}`);
     return { error: 1 };
   }
   let fmt, vt, ti, has480p;
@@ -80,7 +80,7 @@ const loadVideo = async id => {
     vt = vinfo.vl.vi[0].ul.ui[0].vt;
     ti = vinfo.vl.vi[0].ti; // title
   } catch (error) {
-    chalkLog('white','bgRed','视频信息不存在！');
+    chalkLog('white', 'bgRed', '视频信息不存在！');
     return { error: 1 };
   }
   //  标清视频 URL
@@ -94,7 +94,7 @@ const loadVideo = async id => {
     const vkeyNormal = { vkey: `${vinfo['vl']['vi'][0]['fvkey']}` };
     videoUrl = urlNormal;
     videoParams = vkeyNormal;
-    chalkLog('grey','当前为标清视频！');
+    chalkLog('grey', '当前为标清视频！');
   } else {
     // 视频基础链接
     const vURL = vinfo.vl.vi[0].ul.ui[0].url;
@@ -102,11 +102,11 @@ const loadVideo = async id => {
     const info480P = await load480P(vid, fmt, vt, vURL);
     videoUrl = info480P.URL480p;
     videoParams = info480P.params;
-    chalkLog('grey','当前为高清视频！');
+    chalkLog('grey', '当前为高清视频！');
   }
   // 下载视频 以 title 作为文件名
   const videoFilePath = path.resolve(__dirname, `./videos/${ti}.MP4`);
-  chalkLog('grey','开始下载视频！');
+  chalkLog('grey', '开始下载视频！');
   const { error } = await download(videoUrl, videoParams, videoFilePath);
   if (!error) {
     return {
@@ -136,9 +136,9 @@ const download = async (videoUrl, videoParams, videoFilePath) => {
     // 获取文件大小
     dlV.on('response', res => {
       const contentLength = res.headers['content-length']
-      fileInfo.size = `${(contentLength / (1024*1024)).toFixed(2)}M`;
+      fileInfo.size = `${(contentLength / (1024 * 1024)).toFixed(2)}M`;
       fileInfo.totalSize = contentLength
-      chalkLog('green',`视频大小：${fileInfo.size}`);
+      chalkLog('green', `视频大小：${fileInfo.size}`);
     })
     // 监听进度
     dlV.on('data', data => {
@@ -151,15 +151,15 @@ const download = async (videoUrl, videoParams, videoFilePath) => {
     dlV.on('end', () => {
       const et = Date.now();
       const t = formatTimeless(et - st);
-      chalkLog('green',`下载完成，用时：${t}`);
-      chalkLog('green',`正在将视频写入文件……`);
+      chalkLog('green', `下载完成，用时：${t}`);
+      chalkLog('green', `正在将视频写入文件……`);
     })
     // 等待写入文件
     await awaitWS(ws);
     return { error: 0 };
   } catch (error) {
     console.log(error)
-    chalkLog('white','bgRed','视频下载失败,无权限访问!');
+    chalkLog('white', 'bgRed', '视频下载失败,无权限访问!');
     return { error: 1 };
   }
 }

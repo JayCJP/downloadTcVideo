@@ -30,10 +30,11 @@ const askQuestions = () => {
 // 下载完成提示
 const success = res => {
   if (!res.error) {
-    chalkLog('blue', `视频标题：${res.ti} ;`)
-    chalkLog('blue', `视频地址：${res.videoFilePath};`)
+    chalkLog('blue', `视频标题：${res.ti} ;`);
+    chalkLog('blue', `视频地址：${res.videoFilePath};`);
     chalkLog('green', '视频下载完成！');
-  }
+    console.log('\n');
+  } 
   // 再次输出填空
   run();
 };
