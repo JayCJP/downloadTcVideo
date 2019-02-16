@@ -2,6 +2,15 @@ const fs = require('fs');
 const path = require('path');
 const { chalkLog, requestGet, printProgress, userAgent, formatTimeless } = require('./ulit')
 
+// 存放视频的目录文件
+const VFP = path.resolve(__dirname, './videos')
+try {
+  fs.statSync(VFP)
+} catch (error) {
+  fs.mkdirSync(VFP)
+}
+
+
 // 等待完成写入文件
 const awaitWS = ws => new Promise((resolve, reject) => {
   ws.on('finish', () => {
@@ -104,6 +113,9 @@ const loadVideo = async id => {
     videoParams = info480P.params;
     chalkLog('grey', '当前为高清视频！');
   }
+
+  
+
   // 下载视频 以 title 作为文件名
   const videoFilePath = path.resolve(__dirname, `./videos/${ti}.MP4`);
   chalkLog('grey', '开始下载视频！');

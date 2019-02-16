@@ -4,6 +4,9 @@ const { figletLog, chalkLog } = require('./ulit')
 
 figletLog('Tencent video download');
 chalkLog('red', '本程序只作为学习交流，禁止任何商业用途！')
+
+
+  return
 // inquirer 输出填空
 const askQuestions = () => {
   const questions = [
