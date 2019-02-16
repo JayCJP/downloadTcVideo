@@ -1,6 +1,6 @@
 const fs = require('fs');
 const path = require('path');
-const { chalkLog, get, printProgress, userAgent, formatTimeless } = require('./ulit')
+const { chalkLog, requestGet, printProgress, userAgent, formatTimeless } = require('./ulit')
 
 // 等待完成写入文件
 const awaitWS = ws => new Promise((resolve, reject) => {
@@ -18,7 +18,7 @@ const load480P = async (vid, fmt, vt, vURL) => {
   const vurl480p = `http://vv.video.qq.com/getkey`;
   // console.log(vurl480p)
   // 获取高清视频key
-  const vjson480p = await get(vurl480p, {
+  const vjson480p = await requestGet(vurl480p, {
     format: fmt,
     otype: 'json',
     ran: Math.random(),
@@ -48,7 +48,7 @@ const loadVideo = async id => {
   let vjson = '';
   // 获取视频信息
   try {
-    vjson = await get(`http://vv.video.qq.com/getinfo`, {
+    vjson = await requestGet(`http://vv.video.qq.com/getinfo`, {
       vids: vid,
       platform: '101001',
       charge: 0,
@@ -127,7 +127,7 @@ const download = async (videoUrl, videoParams, videoFilePath) => {
     }
     const st = Date.now()
     const ws = fs.createWriteStream(videoFilePath);
-    const dlV = get(videoUrl, videoParams, {
+    const dlV = requestGet(videoUrl, videoParams, {
       origin: 'https://v.qq.com',
       referer: `https://v.qq.com`,
       'user-agent': userAgent

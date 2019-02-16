@@ -93,7 +93,7 @@ function formatUrl(url, params) {
  * @param {Object} headers 
  * @description request.get
  */
-const get = (url, params = {}, headers = {}) => {
+const requestGet = (url, params = {}, headers = {}) => {
   url = formatUrl(url, params)
   return request.get(url, headers)
 }
@@ -107,11 +107,12 @@ const formatTimeless = t => {
   const s = parseInt(Math.floor((t / 1000) % 60))
   return `${h}:${m}:${s}`
 }
+
 module.exports = {
   figletLog,
   chalkLog,
   printProgress,
-  get,
+  requestGet,
   userAgent,
   formatTimeless
 }

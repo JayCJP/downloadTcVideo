@@ -8,8 +8,8 @@ chalkLog('red', '本程序只作为学习交流，禁止任何商业用途！')
 const askQuestions = () => {
   const questions = [
     {
-      name: "videoUrl",
-      type: "input",
+      name:"videoUrl",
+      type:"input",
       message: "请输入视频的链接:",
       validate (input) {
         input = input.toString();
