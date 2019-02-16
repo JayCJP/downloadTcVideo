@@ -6,7 +6,11 @@
 + VIP 视频不能下载，这个不是本程序重点。请支持正版。
 + 欢迎各位绿林好汉 `Issues` `PR` 🤙🤙🤙
 
-## Run
+# Thinking
+
+![](https://raw.githubusercontent.com/JayCJP/downloadTcVideo/master/thinking.png)
+
+# Run
 
 > yarn or npm  我习惯用 yarn 😜😝😜😝
 
