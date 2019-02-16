@@ -12,3 +12,5 @@
 
 1. yarn run install 安装依赖
 2. yarn run start  运行程序
+
+![](https://raw.githubusercontent.com/JayCJP/downloadTcVideo/master/running.png)
