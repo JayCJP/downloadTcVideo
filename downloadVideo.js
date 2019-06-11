@@ -40,9 +40,14 @@ const load480P = async (vid, fmt, vt, vURL) => {
   const jsonString480p = vjson480p.replace(/QZOutputJson=|;/g, '');
   // console.log(jsonString480p)
   const vinfo480p = JSON.parse(jsonString480p);
-  // console.log(vinfo480p)
+  if (!vinfo480p.filename) {
+    chalkLog('grey', '无法获取视频信息！！！');
+    console.log('\n')
+    return {}
+  }
   // 高清视频链接
   const URL480p = `${vURL}${vinfo480p.filename}`;
+  // console.log(vURL)
   const params = {
     vkey: vinfo480p.key,
     level: vinfo480p.level,
@@ -109,12 +114,14 @@ const loadVideo = async id => {
     const vURL = vinfo.vl.vi[0].ul.ui[0].url;
     // console.log(`vURL: ${vURL};fmt:${fmt};vt:${vt}`)
     const info480P = await load480P(vid, fmt, vt, vURL);
+    if (!info480P.URL480p) {
+      return { error: 1, msg: '无法获取视频信息' }
+    }
     videoUrl = info480P.URL480p;
     videoParams = info480P.params;
+    // console.log(videoUrl, videoParams);
     chalkLog('grey', '当前为高清视频！');
   }
-
-  
 
   // 下载视频 以 title 作为文件名
   const videoFilePath = path.resolve(__dirname, `./videos/${ti}.MP4`);
@@ -170,7 +177,7 @@ const download = async (videoUrl, videoParams, videoFilePath) => {
     await awaitWS(ws);
     return { error: 0 };
   } catch (error) {
-    console.log(error)
+    // console.log(error)
     chalkLog('white', 'bgRed', '视频下载失败,无权限访问!');
     return { error: 1 };
   }

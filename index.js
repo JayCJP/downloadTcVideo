@@ -35,7 +35,7 @@ const success = res => {
     chalkLog('blue', `视频地址：${res.videoFilePath};`);
     chalkLog('green', '视频下载完成！');
     console.log('\n');
-  } 
+  }
   // 再次输出填空
   run();
 };
@@ -61,4 +61,8 @@ const run = async () => {
 };
 
 // https://v.qq.com/x/cover/z7s2u1boqtr6ppy/n0828svequv.html
+
+// ffmpeg -ss 00:00:15 -t 00:00:05 -i input.mp4 -vcodec copy -acodec copy output.mp4
+// -ss 表示开始切割的时间，-t 表示要切多少。上面就是从开始，切5秒钟出来。
+
 run();
