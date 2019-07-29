@@ -66,5 +66,6 @@ const run = async () => {
 // -ss 表示开始切割的时间，-t 表示要切多少。上面就是从开始，切5秒钟出来。
 
 // ffmpeg  -ss 00:00:00 -i ./filename.mp4 -f image2 -r 60 -q:v 2 ./ouput.png
+// 截取封面
 
 run();
